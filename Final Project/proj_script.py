@@ -25,11 +25,32 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import make_column_transformer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, roc_auc_score, roc_curve, f1_score
+from pathlib import Path
 
 # %%
 # load data set
-raw_data = pd.read_csv('C:\\Users\\elote\\Repositories\\Statistics-and-Machine-Learning-Fall-2021\\data\\NSDUH_2015_2019.csv')
+#raw_data = pd.read_csv('C:\\Users\\elote\\Repositories\\Statistics-and-Machine-Learning-Fall-2021\\data\\NSDUH_2015_2019.csv')
 #raw_data = pd.read_csv('C:\\Users\\elote\\Repositories\\Statistics-and-Machine-Learning-Fall-2021\\data\\NSDUH_2019.txt', delim_whitespace=True)
+
+# %%
+# Better:
+from pathlib import Path
+DATA_DIR = Path('C:\\Users\\elote\\Repositories\\Statistics-and-Machine-Learning-Fall-2021\\data\\')
+raw_data = pd.read_csv(DATA_DIR / "NSDUH_2015_2019.csv")
+
+# %%
+raw_data.shape
+
+# %% [markdown]
+# Do we have a unique identifier?
+
+# %%
+# get # unique values for each column
+unique_counts = raw_data.dropna().nunique()
+
+# Identify columns where all values are unique
+potential_identifiers = unique_counts[unique_counts == len(raw_data)]
+print(potential_identifiers)
 
 # %% [markdown]
 # ## Preprocessing
@@ -147,7 +168,54 @@ print(features_list)
 
 # %%
 # select subset of raw data with predictors and outcome
-df1 = raw_data[features_list]
+df1 = raw_data[features_list].copy()
+
+# %%
+df2 = raw_data[features_list].copy()
+
+# %%
+df2['snrlgimp'].nunique()
+
+# %%
+raw_data.iloc[:, 0:20].head(10)
+
+# %%
+# find largest number of unique values in a column
+biggest = 0
+cols = []
+
+for col in raw_data.columns:
+    count = raw_data[col].nunique()
+    if count > biggest:
+        biggest = count
+        
+print(biggest)
+
+# %%
+df_unique = raw_data.nunique().reset_index()
+df_unique.columns = ['Column', 'UniqueValues']
+df_unique
+
+# %%
+df_unique['UniqueValues'].describe(percentiles=[.1,.2,.3,.4,.5,.6,.7,.8,.9,.99])
+
+# %% [markdown]
+# BMI is a continous variable with high cardinality. Is there a categorical variable that is similar?
+
+# %%
+df_unique.loc[df_unique['UniqueValues']>50]
+
+# %%
+df_unique['UniqueValues'].unique()
+
+# %%
+df_unique.loc[df_unique['UniqueValues']==278734]
+
+# %%
+raw_data.dropna().shape
+
+# %%
+df2['snrlgimp'].value_counts()
 
 # %% [markdown]
 # Here we do an initial inspection of the working dataframe to notice its structure:
